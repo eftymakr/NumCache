@@ -20,6 +20,15 @@ This repository contains the retrieval pipelines, contrastive KV retriever, and 
 │   ├── inference_with_contrastive_retrieval.py  # Cartridges retriever + cache concat inference
 │   ├── eval_contrastive_recall.py               # R@K / hit@K / MRR evaluation
 │   └── mlp_retrieve_topk.py                     # MLP-pool retriever (top-K extraction)
+├── numcache_init/
+│   ├── automated_training_pipeline.py           # End-to-end NumCache training pipeline
+│   ├── run_cartridges_numcache_init_training.py # NumCache initialization runner
+│   ├── run_cartridges_numcache_ce_training.py   # NumCache + CE loss training
+│   ├── run_cartridges_pinit_ce_training.py      # P-init (first-p tokens) baseline
+│   ├── cartridges_initialization_text.py        # Text-based initialization (NumCache core)
+│   ├── cartridges_initialization_attention_select.py  # Attention-select init variant
+│   ├── cartridges_initialization_from_trimkv.py # TrimKV init variant
+│   └── trimkv_init_caches.py                    # TrimKV cache initialization
 └── inference/
     ├── baseline_fullcontext.py                  # Qwen3-4B full-context baseline (configurable prompt)
     ├── baseline_with_correct_cache.py           # Single-cache (NumCache gold) baseline
@@ -31,6 +40,10 @@ This repository contains the retrieval pipelines, contrastive KV retriever, and 
     ├── contrastive_cache_concat_inference.py    # Contrastive retriever + cache concat (training prompt)
     └── gen_gpt51.py                             # GPT-5.1 baseline (Responses API)
 ```
+
+## NumCache initialization
+
+The `numcache_init/` directory contains the code that trains and initializes the compressed KV caches used as the "cartridges" for cache-concat inference. The `automated_training_pipeline.py` accepts `--init-method {numcache, pinit}` to switch between number-aware compressed-text initialization (the headline NumCache method) and the first-p raw-tokens baseline (`pinit`). At 4x compression, NumCache replaces 5K input tokens with ~1.25K trained cache tokens while preserving numerical information.
 
 ## Prereqs
 
