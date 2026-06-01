@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pt
+*.parquet
+*.jsonl
+.env
+.venv/
+venv/
+.idea/
+.vscode/
+*.log
+outputs/
+results/
+retrieval_results/
+*.pid
+.DS_Store

@@ -1,0 +1,19 @@
+# Core
+torch>=2.4
+transformers>=4.45
+numpy
+pandas
+
+# Text retrievers
+rank_bm25
+elasticsearch>=7.17,<8
+sentence-transformers
+FlagEmbedding  # BGE-reranker
+
+# Contrastive retriever
+# (cartridges package — install from your fork; not on PyPI)
+
+# Inference
+vllm>=0.6
+openai>=1.40  # for GPT-5.1 Responses API
+requests
