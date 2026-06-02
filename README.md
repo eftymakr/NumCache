@@ -34,14 +34,7 @@ git clone https://github.com/HazyResearch/cartridges /path/to/cartridges
 export CARTRIDGES_DIR=/path/to/cartridges
 ```
 
-The text retrievers in `retrieval/` and the number-preserving compressor in `numcache_init/` have **no cartridges dependency** — only the contrastive train/eval scripts need it.
 
-### Environment variables
-
-| Variable | What it points to |
-| --- | --- |
-| `CARTRIDGES_DIR` | Path to the cartridges package (see above). Required for `contrastive/{prepare_pooled_kv,train_static_pool,train_mlp_pool,eval_contrastive_recall}.py`. |
-| `NUMCACHE_CACHE_DIR` | Directory of trained per-doc KV caches (defaults to `<repo>/trained_caches`). |
 
 ## Quick start
 
@@ -92,7 +85,7 @@ python contrastive/mlp_retrieve_topk.py \
   --out-dir retrieval_results/topk_for_baselines
 ```
 
-### 3. Number-preserving compressor (utility, no cartridges required)
+### 3. Number-preserving compressor
 
 Used at cache-initialization time to compress a document down to a token budget while keeping all numeric facts intact:
 
@@ -103,7 +96,4 @@ python numcache_init/number_preserving_compressor.py \
   --output compressed.txt
 ```
 
-## Notes
 
-- Trained cache files, projection heads, and pooled-KV `.pt` files are produced by the contrastive training pipeline and are not committed.
-- The `cartridges` package is not on PyPI. Set `CARTRIDGES_DIR` before running any contrastive train/eval script.
