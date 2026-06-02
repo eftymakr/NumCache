@@ -38,7 +38,7 @@ export CARTRIDGES_DIR=/path/to/cartridges
 
 ## Quick start
 
-### 1. Text retrievers (no cartridges required)
+### 1. Text retrievers
 
 ```bash
 python retrieval/setup_elasticsearch_index.py \
@@ -55,7 +55,7 @@ python retrieval/bm25_number_aware_v2.py \
   --qa_file qa/chunk_based_qa_VLO_PSX.json
 ```
 
-### 2. Contrastive retriever (requires `CARTRIDGES_DIR`)
+### 2. Contrastive retriever 
 
 ```bash
 # Pool KV vectors from the trained caches into a single .pt file.
