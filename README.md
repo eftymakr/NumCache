@@ -25,7 +25,9 @@ pip install -r requirements.txt
 
 ### Cartridges package (required for the contrastive retriever)
 
-The contrastive train + eval scripts load trained KV caches (`cache-step*.pt`) via the `cartridges` package, which is not on PyPI. Install it from the upstream repo:
+The contrastive train + eval scripts depend on the `cartridges` package for the **model classes** — specifically the patched `FlexQwen3ForCausalLM` (used to embed questions and to attend over injected KV caches at runtime) and the `TrainableCache` container around the trained KV tensors. The `cache-step*.pt` files themselves are standard PyTorch state-dicts and don't need cartridges to load as raw tensors.
+
+`cartridges` is not on PyPI — install it from the upstream repo:
 
 ```bash
 git clone https://github.com/HazyResearch/cartridges /path/to/cartridges
