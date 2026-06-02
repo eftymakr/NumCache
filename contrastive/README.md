@@ -19,9 +19,6 @@ Contrastive question-to-cache retriever trained on top of precomputed NumCache K
 | `eval_contrastive_recall.py` | Compute Recall@K and MRR on DR-QA, EC-QA, and LT-QA. |
 | `mlp_retrieve_topk.py` | Use trained heads to score the corpus per query and dump `{qid: [doc_id, ...]}` JSONs for the downstream baselines. |
 
-## Requirements
-
-All scripts in this folder except `mlp_retrieve_topk.py` depend on the `cartridges` package for the patched `FlexQwen3ForCausalLM` model class (used to embed questions and to attend over injected KV caches) and for the `TrainableCache` container that wraps trained KV tensors at load time. The `.pt` cache files themselves are plain PyTorch state-dicts. See the top-level README for cartridges install + `CARTRIDGES_DIR`. The QA JSONs are expected under `$NUMCACHE_REPO_ROOT/qa/`.
 
 ## Quick start
 
