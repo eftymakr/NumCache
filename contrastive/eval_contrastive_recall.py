@@ -16,23 +16,32 @@ from pathlib import Path
 import torch
 from transformers import AutoTokenizer
 
-sys.path.insert(0, '/home/eftychia/Financial-QA-Benchmark-with-KV-cache')
+REPO_ROOT = Path(os.environ.get("NUMCACHE_REPO_ROOT", str(Path(__file__).resolve().parent.parent)))
+sys.path.insert(0, str(REPO_ROOT / "contrastive"))  # for inference_with_contrastive_retrieval
+sys.path.insert(0, str(REPO_ROOT))
+
+# The `cartridges` package is the internal package from the Fin-RATE training
+# repo (not on PyPI). Point CARTRIDGES_DIR at the directory containing it.
+CARTRIDGES_DIR = os.environ.get("CARTRIDGES_DIR")
+if CARTRIDGES_DIR:
+    sys.path.insert(0, CARTRIDGES_DIR)
 
 # Use our existing ContrastiveRetriever
 from inference_with_contrastive_retrieval import ContrastiveRetriever
 from cartridges.models import FlexQwen3ForCausalLM
 
-OUT_DIR = Path('retrieval_results/evals_our_heads')
+OUT_DIR = REPO_ROOT / 'retrieval_results' / 'evals_our_heads'
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-HEADS = '/home/eftychia/Financial-QA-Benchmark-with-KV-cache/retrieval_results/projection_heads.pt'
-POOLED_KV = '/home/eftychia/Financial-QA-Benchmark-with-KV-cache/retrieval_results/pooled_kv_combined.pt'
+HEADS = os.environ.get("NUMCACHE_HEADS_PATH", str(REPO_ROOT / "retrieval_results" / "projection_heads.pt"))
+POOLED_KV = os.environ.get("NUMCACHE_POOLED_KV_PATH", str(REPO_ROOT / "retrieval_results" / "pooled_kv_combined.pt"))
 MODEL_NAME = 'Qwen/Qwen3-4b'
 
+QA_DIR = REPO_ROOT / 'qa'
 QA_FILES = [
-    ('chunk_based', 'qa/chunk_based_qa_VLO_PSX.json', 'doc_id'),
-    ('tracking',    'qa/tracking_qa_VLO_PSX.json',  'doc_ids'),
-    ('comparison',  'qa/company_comparison_VLO_vs_PSX.json',  'doc_ids'),
+    ('chunk_based', QA_DIR / 'chunk_based_qa_VLO_PSX.json', 'doc_id'),
+    ('tracking',    QA_DIR / 'tracking_qa_VLO_PSX.json',  'doc_ids'),
+    ('comparison',  QA_DIR / 'company_comparison_VLO_vs_PSX.json',  'doc_ids'),
 ]
 
 K_VALUES = [1, 3, 5, 10]
@@ -50,7 +59,7 @@ print(f'Building ContrastiveRetriever (heads={HEADS}, pooled_kv={POOLED_KV})...'
 retr = ContrastiveRetriever(
     tokenizer=tokenizer, model=model,
     pooled_kv_path=POOLED_KV, heads_path=HEADS,
-    cache_dir='/tmp/dummy_cache_dir',
+    cache_dir=str(REPO_ROOT / "trained_caches"),  # not used by retrieve_top_k; needed to construct the retriever
 )
 print(f'  ready: {len(retr.doc_ids)} docs in pool')
 

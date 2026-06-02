@@ -18,9 +18,9 @@ OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.1")
 OPENAI_REASONING_EFFORT = os.getenv("OPENAI_REASONING_EFFORT", "minimal").strip().lower()
 
-BASE_DIR = Path("/home/eftychia/Financial-QA-Benchmark-with-KV-cache")
-QA_FILE = BASE_DIR / "qa" / "chunk_based_qa_VLO_PSX.json"
-CORPUS_FILE = BASE_DIR / "corpus.jsonl"
+REPO_ROOT = Path(os.environ.get("NUMCACHE_REPO_ROOT", str(Path(__file__).resolve().parent.parent)))
+QA_FILE = REPO_ROOT / "qa" / "chunk_based_qa_VLO_PSX.json"
+CORPUS_FILE = REPO_ROOT / "corpus.jsonl"
 
 SYSTEM_PROMPT = "Please answer the user's question based on your knowledge."
 

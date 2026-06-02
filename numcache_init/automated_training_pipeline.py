@@ -93,12 +93,13 @@ def normalize_qa_data(qa_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return normalized
 
 
-# Base paths
-BASE_DIR = Path("/home/eftychia/Financial-QA-Benchmark-with-KV-cache")
-QA_OUTPUT_DIR = BASE_DIR / "qa_generation_full_corpus" / "qa_output"
+# Base paths. Override via the NUMCACHE_BASE_DIR env var if your Fin-RATE / cartridges
+# workspace lives elsewhere; defaults to two levels above this script (repo root).
+BASE_DIR = Path(os.environ.get("NUMCACHE_BASE_DIR", str(Path(__file__).resolve().parent.parent)))
+QA_OUTPUT_DIR = Path(os.environ.get("NUMCACHE_QA_OUTPUT_DIR", str(BASE_DIR / "qa_generation_full_corpus" / "qa_output")))
 DOCUMENTS_DIR = QA_OUTPUT_DIR / "documents"
-ENHANCED_CORPUS = BASE_DIR / "qa&corpus" / "qa" / "enhanced_corpus_new.jsonl"
-OUTPUT_BASE_DIR = BASE_DIR / "automated_runs"
+ENHANCED_CORPUS = Path(os.environ.get("NUMCACHE_ENHANCED_CORPUS", str(BASE_DIR / "qa" / "enhanced_corpus_new.jsonl")))
+OUTPUT_BASE_DIR = Path(os.environ.get("NUMCACHE_OUTPUT_DIR", str(BASE_DIR / "automated_runs")))
 
 
 @dataclass
@@ -644,12 +645,9 @@ if __name__ == "__main__":
         # Log file for this training run
         log_file = output_dir / f"training_{self.run_timestamp}.log"
         
-        # Command using micromamba (matching run_training.sh)
-        # Note: env dict is passed to subprocess.Popen which sets CUDA_VISIBLE_DEVICES
-        cmd = [
-            "/home/eftychia/micromamba", "run", "-n", "financial-qa",
-            "python", config_path
-        ]
+        # Use whatever `python` is on PATH (typically a conda/venv activated by the user).
+        # Override with NUMCACHE_PYTHON if you need a different interpreter.
+        cmd = [os.environ.get("NUMCACHE_PYTHON", "python"), config_path]
         
         self.log(f"  Output dir: {output_dir}")
         self.log(f"  Log file: {log_file}")
@@ -754,8 +752,7 @@ if __name__ == "__main__":
                 self.log("DRY RUN COMPLETE - Steps 1-6 successful!")
                 self.log(f"Generated config: {config_path}")
                 self.log(f"To run training manually:")
-                self.log(f"  ./run_training.sh  # (update paths in script)")
-                self.log(f"  OR: /home/eftychia/micromamba run -n financial-qa python {config_path}")
+                self.log(f"  python {config_path}")
                 self.log("=" * 60)
                 return True
             

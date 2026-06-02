@@ -3,12 +3,15 @@ Text retrieval baseline using vLLM (OpenAI-compatible API).
 Matches gen_training_prompt_topk1.py settings: training prompt, k=1, 80K-char context.
 """
 import os, json, argparse, requests, time
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+_REPO_ROOT = Path(os.environ.get("NUMCACHE_REPO_ROOT", str(Path(__file__).resolve().parent.parent)))
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--retrieval_file', required=True)
 parser.add_argument('--qa_file', required=True)
-parser.add_argument('--corpus_file', default='/home/eftychia/Financial-QA-Benchmark-with-KV-cache/corpus.jsonl')
+parser.add_argument('--corpus_file', default=str(_REPO_ROOT / 'corpus.jsonl'))
 parser.add_argument('--output', required=True)
 parser.add_argument('--api_url', default='http://localhost:8200/v1/chat/completions')
 parser.add_argument('--model', default='Qwen/Qwen3-4b')
@@ -16,7 +19,8 @@ parser.add_argument('--top_k', type=int, default=1)
 parser.add_argument('--max_context_chars', type=int, default=80000)
 parser.add_argument('--max_workers', type=int, default=4)
 parser.add_argument('--max_new_tokens', type=int, default=512)
-parser.add_argument('--golden_kp', default='/home/eftychia/Financial-QA-Benchmark-with-KV-cache/chunk_vlo_psx_145_for_golden.json')
+parser.add_argument('--golden_kp', default=str(_REPO_ROOT / 'qa' / 'chunk_vlo_psx_145_for_golden.json'),
+                    help='Optional key-points file used to enrich the answer prompt.')
 args = parser.parse_args()
 
 SYSTEM_PROMPT = "Please answer the user's question based on your knowledge."

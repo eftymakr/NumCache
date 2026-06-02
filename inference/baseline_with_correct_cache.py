@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 """
-Baseline Evaluation: Test QA datasets with the correct KV cache for each question.
+NumCache "gold cache" baseline: for each QA, load the trained KV cache for the
+gold doc_id(s) and generate an answer (Sec. 3.3 inference path, top-1 oracle).
 
-This follows the same approach as inference_with_cache.py but:
-1. Loads QA datasets from /home/eftychia/Financial-QA-Benchmark-with-KV-cache/qa&corpus/qa/
-2. For each question, looks up the correct cache based on doc_id
-3. Generates answers and compares to ground truth
+Reads QA from the --qa_dir directory (defaults to <repo>/qa) and trained caches
+from the --cache_dir directory (defaults to <repo>/trained_caches).
 
 Datasets:
-- chunk_based_qa_VLO_PSX.json - Single document questions  
-- company_comparison_VLO_vs_PSX.json - Multi-document comparisons
-- tracking_qa_VLO_PSX.json - Temporal tracking questions
+- chunk_based_qa_VLO_PSX.json        - DR-QA: single-document questions
+- company_comparison_VLO_vs_PSX.json - EC-QA: multi-document comparisons
+- tracking_qa_VLO_PSX.json           - LT-QA: multi-document temporal tracking
 """
 
 import argparse
@@ -28,8 +27,15 @@ import torch
 os.environ["CARTRIDGES_DISABLE_COMPILE"] = "1"
 torch._dynamo.config.suppress_errors = True
 
-# Add cartridges to path
-sys.path.append('/home/eftychia/Financial-QA-Benchmark-with-KV-cache')
+REPO_ROOT = Path(os.environ.get("NUMCACHE_REPO_ROOT", str(Path(__file__).resolve().parent.parent)))
+
+# The `cartridges` package is the internal package from the Fin-RATE training
+# repo (not on PyPI). Point CARTRIDGES_DIR at the directory containing it.
+CARTRIDGES_DIR = os.environ.get("CARTRIDGES_DIR")
+if CARTRIDGES_DIR:
+    sys.path.insert(0, CARTRIDGES_DIR)
+# Pick up the sibling `contrastive/inference_with_cache.py` helper.
+sys.path.insert(0, str(REPO_ROOT / "contrastive"))
 
 from transformers import AutoTokenizer
 from cartridges.cache import TrainableCache
@@ -37,7 +43,6 @@ from cartridges.models.qwen.modeling_qwen3 import FlexQwen3ForCausalLM
 from cartridges.generation import flex_generate
 from cartridges.initialization.tokenization_utils import MODEL_TO_CHAT_TEMPLATE, MODELS_WITH_THINKING
 
-# Import concatenate_caches from the existing script
 from inference_with_cache import concatenate_caches
 
 
@@ -356,15 +361,15 @@ def evaluate_dataset(
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate QA datasets with correct KV caches")
-    parser.add_argument("--qa-dir", type=str, 
-                        default="/home/eftychia/Financial-QA-Benchmark-with-KV-cache/qa&corpus/qa",
-                        help="Directory containing QA JSON files")
+    parser.add_argument("--qa-dir", type=str,
+                        default=str(REPO_ROOT / "qa"),
+                        help="Directory containing QA JSON files (override via NUMCACHE_QA_DIR).")
     parser.add_argument("--cache-dir", type=str,
-                        default="/ext/peiwenfiles/automated_runs_merged",
-                        help="Base directory for KV caches")
+                        default=os.environ.get("NUMCACHE_CACHE_DIR", str(REPO_ROOT / "trained_caches")),
+                        help="Base directory of trained per-doc KV caches (override via NUMCACHE_CACHE_DIR).")
     parser.add_argument("--output-dir", type=str,
-                        default="/home/eftychia/Financial-QA-Benchmark-with-KV-cache/baseline_results",
-                        help="Directory to save results")
+                        default=str(REPO_ROOT / "baseline_results"),
+                        help="Directory to save results.")
     parser.add_argument("--max-questions", type=int, default=None,
                         help="Max questions per dataset (for testing)")
     parser.add_argument("--max-new-tokens", type=int, default=512,

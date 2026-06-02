@@ -11,7 +11,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from transformers import AutoTokenizer
 
-sys.path.insert(0, '/home/eftychia/Financial-QA-Benchmark-with-KV-cache')
+REPO_ROOT = Path(os.environ.get("NUMCACHE_REPO_ROOT", Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(REPO_ROOT))
 
 # Architecture must match the MLP-pool training script
 class ProjectionHead(nn.Module):
@@ -104,9 +105,14 @@ def retrieve_top_k(question_repr, doc_ids, selected_layers, qh, ch, pool_mlp, to
 def main():
     import argparse
     p = argparse.ArgumentParser()
-    p.add_argument('--heads', default='/home/eftychia/Financial-QA-Benchmark-with-KV-cache/retrieval_results/mlp_combined_then_merged_v1/20260531-041035/projection_heads.pt')
-    p.add_argument('--pooled-kv', default='/home/eftychia/Financial-QA-Benchmark-with-KV-cache/retrieval_results/mlp_combined_then_merged_v1/pooled_kv_with_layers_p_compression.pt')
-    p.add_argument('--out-dir', default='/home/eftychia/Financial-QA-Benchmark-with-KV-cache/retrieval_results/mlp_combined_then_merged_v1/topk_for_baselines')
+    p.add_argument('--heads', default=str(REPO_ROOT / 'retrieval_results' / 'projection_heads.pt'),
+                   help='Path to trained projection heads (.pt). Produced by contrastive training.')
+    p.add_argument('--pooled-kv', default=str(REPO_ROOT / 'retrieval_results' / 'pooled_kv_with_layers.pt'),
+                   help='Path to pooled KV cache representations (.pt). Produced offline from trained caches.')
+    p.add_argument('--out-dir', default=str(REPO_ROOT / 'retrieval_results' / 'topk_for_baselines'),
+                   help='Output directory for {qid: [doc_id,...]} JSONs.')
+    p.add_argument('--qa-dir', default=str(REPO_ROOT / 'qa'),
+                   help='Directory containing the Fin-RATE QA JSONs.')
     p.add_argument('--top-k', type=int, default=10)
     args = p.parse_args()
     os.makedirs(args.out_dir, exist_ok=True)
@@ -125,12 +131,13 @@ def main():
     model.eval()
 
     qa_files = [
-        ('chunk_based_qa_VLO_PSX', 'qa/chunk_based_qa_VLO_PSX.json'),
-        ('tracking_qa_VLO_PSX', 'qa/tracking_qa_VLO_PSX.json'),
-        ('company_comparison_VLO_vs_PSX', 'qa/company_comparison_VLO_vs_PSX.json'),
+        ('chunk_based_qa_VLO_PSX', 'chunk_based_qa_VLO_PSX.json'),
+        ('tracking_qa_VLO_PSX', 'tracking_qa_VLO_PSX.json'),
+        ('company_comparison_VLO_vs_PSX', 'company_comparison_VLO_vs_PSX.json'),
     ]
-    for name, qa_path in qa_files:
-        qa = json.load(open(qa_path))
+    qa_dir = Path(args.qa_dir)
+    for name, qa_file in qa_files:
+        qa = json.load(open(qa_dir / qa_file))
         print(f'\n=== {name}: {len(qa)} QAs ===')
         out_flat = {}
         for i, x in enumerate(qa):

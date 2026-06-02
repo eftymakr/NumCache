@@ -27,13 +27,17 @@ torch._dynamo.config.suppress_errors = True
 # os.environ["TORCH_COMPILE"] = "0"
 # os.environ["TORCHDYNAMO_DISABLE"] = "1"
 
-sys.path.append('/home/eftychia/Financial-QA-Benchmark-with-KV-cache/cartridges')
+# The `cartridges` package is the internal package from the Fin-RATE training
+# repo (not on PyPI). Point CARTRIDGES_DIR at the directory containing it.
+CARTRIDGES_DIR = os.environ.get("CARTRIDGES_DIR")
+if CARTRIDGES_DIR:
+    sys.path.insert(0, CARTRIDGES_DIR)
 
 from cartridges.cache import TrainableCache
 from cartridges.models.qwen.modeling_qwen3 import FlexQwen3ForCausalLM
 from cartridges.generation import flex_generate
 
-# Import your existing concatenation function
+# Single-cache concat + generation helpers (shipped alongside this file).
 from inference_with_cache import concatenate_caches, generate_answer
 
 
